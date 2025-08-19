@@ -23,217 +23,59 @@ st.set_page_config(
 
 APP_TITLE = "Intern Work Tracker"
 
-# Extensive UI Redesign using custom CSS
+# Revamped color scheme and centered form using custom CSS
 st.markdown(
     """
 <style>
-/* Font import */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-html, body, [data-testid="stAppViewContainer"] {
-    font-family: 'Inter', sans-serif;
-    color: #333333; /* Darker grey for overall text for better readability */
+/* Main app and sidebar background colors */
+[data-testid="stAppViewContainer"] > .main {
+    background-color: #F5F5F5;
 }
-
-/* Background Gradient for the main app */
-[data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, #e0f7fa, #ede7f6); /* Pastel blue to light lavender */
-    position: relative;
-    /* Removed overflow: hidden; to allow scrolling */
-}
-
-/* Optional: Subtle radial gradient for depth */
-[data-testid="stAppViewContainer"]::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%);
-    pointer-events: none;
-}
-
-/* Sidebar background */
 [data-testid="stSidebar"] {
-    background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
-    border-right: 1px solid rgba(0,0,0,0.05);
+    background-color: #ECECEC;
 }
 
 /* Reduce sidebar width */
 [data-testid="stSidebar"] > div:first-child {
-    max-width: 250px; /* Slightly wider sidebar */
-    min-width: 180px;
-    width: 220px;
+    max-width: 220px;
+    min-width: 160px;
+    width: 180px;
 }
 
-/* Card-style containers for sections */
-.stContainer, .stForm, [data-testid="stVerticalBlock"] > div:has(h3) {
-    background-color: rgba(255, 255, 255, 0.95); /* Nearly white, slightly transparent */
-    border-radius: 16px; /* More rounded corners */
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* Soft shadow */
-    padding: 30px; /* Increased padding for spaciousness */
-    margin-bottom: 25px; /* Spacing between cards */
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+/* Vibrant primary button color */
+div.stButton > button:first-child {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
 }
 
-.stContainer:hover, .stForm:hover, [data-testid="stVerticalBlock"] > div:has(h3):hover {
-    transform: translateY(-5px); /* Slight lift on hover */
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+div.stButton > button:hover {
+    background-color: #45a049;
 }
 
-/* Center and widen the form (already done, just ensuring styles apply) */
+/* Override primary button color for selected date to be blue */
+.stButton button[kind="primary"] {
+    background-color: #007BFF !important;
+}
+
+/* Center and widen the form */
 .stForm {
     width: 100%;
-    max-width: 850px; /* Max width for forms */
-    margin: 30px auto; /* Center alignment with top/bottom margin */
-    padding: 35px; /* More padding */
-}
-
-/* Typography */
-h1, h2, h3, h4, h5, h6 {
-    color: #06B6D4; /* Primary accent color for headings */
-    font-weight: 600; /* Semi-bold for headings */
-    margin-bottom: 15px;
-}
-h1 { font-size: 2.8em; margin-bottom: 30px;}
-h3 { font-size: 1.6em; margin-bottom: 20px;}
-h4 { font-size: 1.3em; margin-bottom: 15px;}
-
-/* Buttons - Gradient and hover effects */
-div.stButton > button {
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: all 0.3s ease-in-out;
-    border: none;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-div.stButton > button:first-child:not([kind="primary"]):not([kind="secondary"]) {
-    background-image: linear-gradient(45deg, #00BFA6, #06B6D4); /* Teal to Cyan */
-    color: white;
-}
-
-div.stButton > button:first-child:not([kind="primary"]):not([kind="secondary"]):hover {
-    background-image: linear-gradient(45deg, #06B6D4, #00BFA6);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 0 0 15px rgba(6, 182, 212, 0.6); /* Glow effect */
-}
-
-/* Primary buttons (used for selected date and submit) */
-.stButton button[kind="primary"] {
-    background-image: linear-gradient(45deg, #007BFF, #6A5ACD) !important; /* Blue to Slate Blue */
-    color: white !important;
-    font-weight: bold;
-    border: none;
-    transition: all 0.3s ease-in-out;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.stButton button[kind="primary"]:hover {
-    background-image: linear-gradient(45deg, #6A5ACD, #007BFF) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15), 0 0 15px rgba(0, 123, 255, 0.6); /* Glow effect */
-}
-
-/* Secondary buttons (calendar days) */
-.stButton button[kind="secondary"] {
-    background-color: #F0F2F6; /* Light gray */
-    color: #333333;
-    border: 1px solid #D1D9E6;
-}
-
-.stButton button[kind="secondary"]:hover {
-    background-color: #E0E2E6;
-    border-color: #C1C9D6;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-}
-
-/* Input fields - soft border, inner shadow, focus glow */
-.stTextInput > div > div > input,
-.stTextArea > div > div > textarea,
-.stDateInput > div > div > input,
-.stSelectbox > div > div > div > input {
-    border: 1px solid #D1D9E6;
-    border-radius: 8px;
-    padding: 10px 15px;
-    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05); /* Inner shadow */
-    transition: all 0.2s ease-in-out;
-    background-color: #FFFFFF;
-}
-
-.stTextInput > div > div > input:focus,
-.stTextArea > div > div > textarea:focus,
-.stDateInput > div > div > input:focus,
-.stSelectbox > div > div > div > input:focus {
-    border-color: #8B5CF6; /* Purple accent on focus */
-    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.08), 0 0 0 3px rgba(139, 92, 246, 0.2); /* Focus glow */
-    outline: none;
-}
-
-/* Calendar Day Buttons (specifically for the day numbers) */
-[data-testid^="stColumn"] > div > .stButton > button {
-    width: 100%; /* Make buttons fill the column */
-    height: 45px; /* Fixed height for consistent look */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 25px; /* Pill shape for dates */
-    font-size: 1.1em;
-    font-weight: 500;
-}
-
-/* Selected date glowing pulse animation */
-.stButton button[kind="primary"] {
-    animation: pulse 1.5s infinite alternate;
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); }
-    100% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); }
-}
-
-/* Expanders (for results) fade-in */
-[data-testid="stExpander"] {
-    opacity: 0;
-    animation: fadeIn 0.5s forwards;
-    animation-delay: 0.2s; /* Delay for a smoother reveal */
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Adjust markdown elements within expanders for better spacing */
-.stExpander div[data-testid="stMarkdownContainer"] {
-    padding-top: 5px;
-    padding-bottom: 5px;
-}
-
-/* Metrics styling */
-[data-testid="stMetric"] > div {
-    background-color: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
+    max-width: 800px;
+    margin: 0 auto;
     padding: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    transition: transform 0.3s ease;
-}
-[data-testid="stMetric"] > div:hover {
-    transform: translateY(-3px);
-}
-[data-testid="stMetricValue"] {
-    color: #8B5CF6; /* Accent color for metric values */
-    font-size: 2em;
-    font-weight: 700;
-}
-[data-testid="stMetricLabel"] {
-    color: #555555;
-    font-weight: 500;
+    border-radius: 10px;
+    background-color: #f0f2f6; /* Light gray background for the form */
 }
 
+/* Custom header colors */
+h1 {
+    color: #4CAF50;
+}
+h3 {
+    color: #333333;
+}
 </style>
 """,
     unsafe_allow_html=True,
@@ -315,7 +157,6 @@ def main() -> None:
         st.session_state.selected_date = today
 
     with left_col:
-        # Calendar Section
         st.markdown("### Calendar")
         cal_controls = st.columns([1, 1, 2])
         if cal_controls[0].button("Previous"):
@@ -325,7 +166,6 @@ def main() -> None:
                 st.session_state.view_month = 12
             else:
                 st.session_state.view_month = m - 1
-            st.rerun()
         if cal_controls[1].button("Next"):
             y, m = st.session_state.view_year, st.session_state.view_month
             if m == 12:
@@ -333,7 +173,6 @@ def main() -> None:
                 st.session_state.view_month = 1
             else:
                 st.session_state.view_month = m + 1
-            st.rerun()
         cal_controls[2].button("Today", key="cal_today_button", on_click=lambda: _set_to_today())
 
         st.markdown(f"#### {calendar.month_name[st.session_state.view_month]} {st.session_state.view_year}")
@@ -348,13 +187,6 @@ def main() -> None:
 
         month_cal = calendar.monthcalendar(st.session_state.view_year, st.session_state.view_month)
 
-        # Days of the week header
-        week_day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-        week_cols = st.columns(7)
-        for i, day_name in enumerate(week_day_names):
-            week_cols[i].markdown(f"<p style='text-align: center; font-weight: 600; color: #555;'>{day_name}</p>", unsafe_allow_html=True)
-
-
         for week in month_cal:
             cols = st.columns(7)
             for i, daynum in enumerate(week):
@@ -368,12 +200,11 @@ def main() -> None:
                 
                 button_type = "primary" if cell_date == st.session_state.selected_date else "secondary"
                 
-                if cols[i].button(f"{daynum}{badge}", key=f"cal_day_{cell_date.isoformat()}", type=button_type):
+                if cols[i].button(f"{daynum}{badge}", key=f"cal_day_{daynum}", type=button_type):
                     st.session_state.selected_date = cell_date
                     st.rerun()
 
     with right_col:
-        # Controls Section
         st.markdown("### Controls")
 
         search_col1, search_col2, search_col3 = st.columns([2, 1, 1])
@@ -399,7 +230,6 @@ def main() -> None:
             if dataframe.empty:
                 return dataframe
             df_filtered = dataframe.copy()
-            df_filtered["date"] = pd.to_datetime(df_filtered["date"]) # Ensure 'date' is datetime
             df_filtered = df_filtered[(df_filtered["date"] >= pd.to_datetime(scope_obj.start_date)) & (df_filtered["date"] <= pd.to_datetime(scope_obj.end_date))]
             if query.strip():
                 q = query.strip().lower()
@@ -409,7 +239,6 @@ def main() -> None:
 
         filtered = apply_filters(df, search_query, scope)
 
-        # Results Section
         st.markdown("### Results")
         stat_col1, stat_col2, stat_col3 = st.columns([1, 1, 2])
         stat_col1.metric("Updates in view", len(filtered))
@@ -433,7 +262,7 @@ def main() -> None:
                             st.caption(f"Updated by: {row['created_by']}")
                         st.markdown("---")
 
-    # Add / Edit update section (full-width and centered)
+    # This section is now moved to be full-width and centered
     st.markdown("### Add / Edit update")
 
     # Initialize session state for form fields
@@ -453,7 +282,7 @@ def main() -> None:
         tags = st.text_input("Tags (comma-separated, optional)", value=st.session_state["tags"])
         updated_by = st.text_input("Updated by (your name)", value=st.session_state["updated_by"])
 
-        submitted = st.form_submit_button("Submit update", type="primary")
+        submitted = st.form_submit_button("Submit update")
 
         if submitted:
             if not intern_name.strip():
@@ -475,7 +304,6 @@ def main() -> None:
                     st.cache_data.clear()
                     st.session_state["form_submitted"] = True
                     st.success("Update added successfully")
-                    st.rerun() # Rerun to clear form and refresh data
                 except Exception as exc:
                     st.exception(exc)
 
@@ -494,7 +322,6 @@ def _set_to_today() -> None:
     st.session_state.view_year = today.year
     st.session_state.view_month = today.month
     st.session_state.selected_date = today
-    st.rerun()
 
 
 if __name__ == "__main__":
