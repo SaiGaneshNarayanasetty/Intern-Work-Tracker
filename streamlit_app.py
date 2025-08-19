@@ -23,49 +23,56 @@ st.set_page_config(
 
 APP_TITLE = "Intern Work Tracker"
 
-# Custom vibrant CSS
+# Revamped color scheme and centered form using custom CSS
 st.markdown(
     """
 <style>
-/* Sidebar width */
+/* Reduce sidebar width */
 [data-testid="stSidebar"] > div:first-child {
     max-width: 220px;
     min-width: 160px;
     width: 180px;
 }
 
-/* Calendar buttons */
-div.stButton > button {
+/* Vibrant primary button color */
+div.stButton > button:first-child {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
     border-radius: 8px;
-    font-weight: 500;
-    transition: 0.2s;
 }
+
 div.stButton > button:hover {
-    background-color: #ff9800 !important;
-    color: white !important;
+    background-color: #45a049;
 }
 
-/* Highlight selected calendar date */
-.selected-date {
-    background-color: #4caf50 !important;
+/* Highlight selected date in calendar */
+.selected-date-button {
+    background-color: #2196F3 !important; /* Blue for selection */
     color: white !important;
-    border-radius: 50%;
     font-weight: bold;
-    padding: 6px 10px;
+    border-radius: 8px;
+    border: none;
 }
 
-/* Center the Add/Edit update form */
-.add-edit-container {
-    display: flex;
-    justify-content: center;
-}
-.add-edit-form {
-    width: 80%;
+/* Center and widen the form */
+.stForm {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
     padding: 20px;
-    background: #f9f9f9;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    background-color: #f0f2f6; /* Light gray background for the form */
 }
+
+/* Custom header colors */
+h1 {
+    color: #4CAF50;
+}
+h3 {
+    color: #333333;
+}
+
 </style>
 """,
     unsafe_allow_html=True,
@@ -187,10 +194,26 @@ def main() -> None:
                 badge = ""
                 if fmt_date(cell_date) in counts_by_date:
                     badge = f" ({counts_by_date[fmt_date(cell_date)]})"
-
+                
                 # Highlight selected date
                 if cell_date == st.session_state.selected_date:
-                    cols[i].markdown(f"<div class='selected-date'>{daynum}{badge}</div>", unsafe_allow_html=True)
+                    cols[i].markdown(
+                        f"""
+                        <style>
+                            .selected-button-{daynum} > button {{
+                                background-color: #2196F3 !important;
+                                color: white !important;
+                                font-weight: bold;
+                                border-radius: 8px;
+                                border: none;
+                            }}
+                        </style>
+                        <div class="selected-button-{daynum}">
+                            <button>{daynum}{badge}</button>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
                 else:
                     if cols[i].button(f"{daynum}{badge}"):
                         st.session_state.selected_date = cell_date
@@ -253,66 +276,59 @@ def main() -> None:
                             st.caption(f"Updated by: {row['created_by']}")
                         st.markdown("---")
 
-        # Centered Add/Edit update form
-        st.markdown("### Add / Edit update")
-        st.markdown('<div class="add-edit-container"><div class="add-edit-form">', unsafe_allow_html=True)
+    # This section is now moved to be full-width and centered
+    st.markdown("### Add / Edit update")
 
-        # Initialize session state for form fields
-        for key in ["intern_name", "role_input", "update_text", "tags", "updated_by", "form_submitted"]:
-            if key not in st.session_state:
-                st.session_state[key] = "" if key != "form_submitted" else False
+    # Initialize session state for form fields
+    for key in ["intern_name", "role_input", "update_text", "tags", "updated_by", "form_submitted"]:
+        if key not in st.session_state:
+            st.session_state[key] = "" if key != "form_submitted" else False
 
-        with st.form("add_update_form"):
-            col1, col2 = st.columns([2, 1])
-            unique_names = sorted(df["intern_name"].dropna().unique().tolist()) if not df.empty else []
-            intern_name = col1.selectbox("Intern name", options=["<new>"] + unique_names, index=0)
-            if intern_name == "<new>":
-                intern_name = col1.text_input("New intern name", value=st.session_state["intern_name"])
-            role_input = col2.text_input("Role / Team (optional)", value=st.session_state["role_input"])
-            date_input = st.date_input("Date of update", value=st.session_state.selected_date)
-            update_text = st.text_area("Update text (what did you do today?)", height=120, value=st.session_state["update_text"])
-            tags = st.text_input("Tags (comma-separated, optional)", value=st.session_state["tags"])
-            updated_by = st.text_input("Updated by (your name)", value=st.session_state["updated_by"])
+    with st.form("add_update_form"):
+        col1, col2 = st.columns([2, 1])
+        unique_names = sorted(df["intern_name"].dropna().unique().tolist()) if not df.empty else []
+        intern_name = col1.selectbox("Intern name", options=["<new>"] + unique_names, index=0)
+        if intern_name == "<new>":
+            intern_name = col1.text_input("New intern name", value=st.session_state["intern_name"])
+        role_input = col2.text_input("Role / Team (optional)", value=st.session_state["role_input"])
+        date_input = st.date_input("Date of update", value=st.session_state.selected_date)
+        update_text = st.text_area("Update text (what did you do today?)", height=120, value=st.session_state["update_text"])
+        tags = st.text_input("Tags (comma-separated, optional)", value=st.session_state["tags"])
+        updated_by = st.text_input("Updated by (your name)", value=st.session_state["updated_by"])
 
-            submitted = st.form_submit_button("Submit update")
+        submitted = st.form_submit_button("Submit update")
 
-            if submitted:
-                if not intern_name.strip():
-                    st.error("Intern name is required")
-                elif not update_text.strip():
-                    st.error("Update text is required")
-                else:
-                    new_row = {
-                        "date": fmt_date(date_input),
-                        "intern_name": intern_name.strip(),
-                        "role": role_input.strip(),
-                        "update_text": update_text.strip(),
-                        "tags": tags.strip(),
-                        "created_at": datetime.now().astimezone().isoformat(),
-                        "created_by": updated_by.strip() if updated_by.strip() else st.session_state.get("user", "unknown"),
-                    }
-                    try:
-                        append_update_to_sheet(sheet_id=sheet_id, credentials=creds, row=new_row)
-                        st.cache_data.clear()
-                        st.session_state["form_submitted"] = True
-                        st.success("Update added successfully")
-                    except Exception as exc:
-                        st.exception(exc)
+        if submitted:
+            if not intern_name.strip():
+                st.error("Intern name is required")
+            elif not update_text.strip():
+                st.error("Update text is required")
+            else:
+                new_row = {
+                    "date": fmt_date(date_input),
+                    "intern_name": intern_name.strip(),
+                    "role": role_input.strip(),
+                    "update_text": update_text.strip(),
+                    "tags": tags.strip(),
+                    "created_at": datetime.now().astimezone().isoformat(),
+                    "created_by": updated_by.strip() if updated_by.strip() else st.session_state.get("user", "unknown"),
+                }
+                try:
+                    append_update_to_sheet(sheet_id=sheet_id, credentials=creds, row=new_row)
+                    st.cache_data.clear()
+                    st.session_state["form_submitted"] = True
+                    st.success("Update added successfully")
+                except Exception as exc:
+                    st.exception(exc)
 
-        # Clear form values after successful submission
-        if st.session_state.get("form_submitted"):
-            st.session_state["intern_name"] = ""
-            st.session_state["role_input"] = ""
-            st.session_state["update_text"] = ""
-            st.session_state["tags"] = ""
-            st.session_state["updated_by"] = ""
-            st.session_state["form_submitted"] = False
-
-        st.markdown("</div></div>", unsafe_allow_html=True)
-
-    # Removed Selected Date bar in sidebar
-    # st.sidebar.markdown("---")
-    # st.sidebar.markdown(f"**Selected date:** {st.session_state.selected_date}")
+    # Clear form values after successful submission
+    if st.session_state.get("form_submitted"):
+        st.session_state["intern_name"] = ""
+        st.session_state["role_input"] = ""
+        st.session_state["update_text"] = ""
+        st.session_state["tags"] = ""
+        st.session_state["updated_by"] = ""
+        st.session_state["form_submitted"] = False
 
 
 def _set_to_today() -> None:
