@@ -46,13 +46,9 @@ div.stButton > button:hover {
     background-color: #45a049;
 }
 
-/* Highlight selected date in calendar */
-.selected-date-button {
-    background-color: #2196F3 !important; /* Blue for selection */
-    color: white !important;
-    font-weight: bold;
-    border-radius: 8px;
-    border: none;
+/* Override primary button color for selected date to be blue */
+.stButton button[kind="primary"] {
+    background-color: #007BFF !important;
 }
 
 /* Center and widen the form */
@@ -72,7 +68,6 @@ h1 {
 h3 {
     color: #333333;
 }
-
 </style>
 """,
     unsafe_allow_html=True,
@@ -195,28 +190,11 @@ def main() -> None:
                 if fmt_date(cell_date) in counts_by_date:
                     badge = f" ({counts_by_date[fmt_date(cell_date)]})"
                 
-                # Highlight selected date
-                if cell_date == st.session_state.selected_date:
-                    cols[i].markdown(
-                        f"""
-                        <style>
-                            .selected-button-{daynum} > button {{
-                                background-color: #2196F3 !important;
-                                color: white !important;
-                                font-weight: bold;
-                                border-radius: 8px;
-                                border: none;
-                            }}
-                        </style>
-                        <div class="selected-button-{daynum}">
-                            <button>{daynum}{badge}</button>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-                else:
-                    if cols[i].button(f"{daynum}{badge}"):
-                        st.session_state.selected_date = cell_date
+                button_type = "primary" if cell_date == st.session_state.selected_date else "secondary"
+                
+                if cols[i].button(f"{daynum}{badge}", key=f"cal_day_{daynum}", type=button_type):
+                    st.session_state.selected_date = cell_date
+                    st.rerun()
 
     with right_col:
         st.markdown("### Controls")
