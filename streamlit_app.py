@@ -39,7 +39,7 @@ html, body, [data-testid="stAppViewContainer"] {
 [data-testid="stAppViewContainer"] {
     background: linear-gradient(135deg, #e0f7fa, #ede7f6); /* Pastel blue to light lavender */
     position: relative;
-    overflow: hidden;
+    /* Removed overflow: hidden; to allow scrolling */
 }
 
 /* Optional: Subtle radial gradient for depth */
