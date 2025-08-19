@@ -23,101 +23,58 @@ st.set_page_config(
 
 APP_TITLE = "Intern Work Tracker"
 
-# Custom CSS to apply the aesthetic improvements
-# This CSS creates a card-based layout with rounded corners, shadows, and a clean color scheme.
+# Revamped color scheme and centered form using custom CSS
 st.markdown(
     """
 <style>
 /* Main app and sidebar background colors */
 [data-testid="stAppViewContainer"] > .main {
-    background-color: #F8F9FA; /* A very light gray for the main background */
-    padding: 2rem;
+    background-color: #F5F5F5;
 }
-
 [data-testid="stSidebar"] {
-    background-color: #FFFFFF; /* White background for the sidebar */
-    box-shadow: 2px 0 5px rgba(0,0,0,0.05); /* Subtle shadow for depth */
+    background-color: #ECECEC;
 }
 
-/* Page title styling */
-h1 {
-    color: #4CAF50; /* A vibrant green for the main title */
-    font-size: 3rem;
-    font-weight: 600;
-    margin-bottom: 2rem;
+/* Reduce sidebar width */
+[data-testid="stSidebar"] > div:first-child {
+    max-width: 220px;
+    min-width: 160px;
+    width: 180px;
 }
 
-/* Card styling for all main containers */
-.card {
-    background-color: #FFFFFF;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    margin-bottom: 2rem;
-    border: 1px solid #EAEAEA;
-}
-
-/* Sub-header colors to match the image reference */
-h3, .stExpander span {
-    color: #007BFF;
-}
-
-/* General button styling for rounded corners and clean look */
+/* Vibrant primary button color */
 div.stButton > button:first-child {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
     border-radius: 8px;
-    border: 1px solid #DDDDDD;
-    background-color: #F0F2F6;
-    color: #495057;
 }
 
 div.stButton > button:hover {
-    background-color: #E2E4E8;
-    color: #000000;
+    background-color: #45a049;
 }
 
-/* Special styling for the 'Today' button and selected calendar date */
-.stButton button[kind="primary"], div.stButton button[kind="secondary"][style*="background-color: rgb(255, 255, 255)"] {
+/* Override primary button color for selected date to be blue */
+.stButton button[kind="primary"] {
     background-color: #007BFF !important;
-    color: white !important;
-    border-color: #007BFF !important;
 }
 
-/* Text-based buttons for calendar navigation (Previous/Next) */
-.cal-nav-button > div > button {
-    background-color: transparent;
-    border: none;
-    color: #007BFF;
-    font-weight: 600;
+/* Center and widen the form */
+.stForm {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #f0f2f6; /* Light gray background for the form */
 }
 
-.cal-nav-button > div > button:hover {
-    background-color: #F0F2F6;
+/* Custom header colors */
+h1 {
+    color: #4CAF50;
 }
-
-/* Input field styling */
-.stTextInput > div > div > input,
-.stSelectbox > div > div,
-.stDateInput > div > div > input {
-    border-radius: 8px;
-    border: 1px solid #DDDDDD;
-}
-
-/* Custom width for calendar columns */
-.cal-column {
-    display: flex;
-    justify-content: center;
-}
-
-/* Expander styling for results */
-.stExpander {
-    background-color: #F8F9FA;
-    border-radius: 8px;
-    border: 1px solid #EAEAEA;
-    margin-bottom: 1rem;
-}
-
-.stExpander div[data-testid="stExpanderDetails"] {
-    padding: 1rem;
+h3 {
+    color: #333333;
 }
 </style>
 """,
@@ -166,6 +123,8 @@ def main() -> None:
     except Exception as exc:
         st.error("Credentials problem: " + str(exc))
 
+    left_col, right_col = st.columns([1.3, 2])
+
     df: Optional[pd.DataFrame]
     if sheet_id and creds:
         try:
@@ -197,44 +156,26 @@ def main() -> None:
     if "selected_date" not in st.session_state:
         st.session_state.selected_date = today
 
-
-    # Layout with two main columns for the Calendar and Controls cards
-    left_col, right_col = st.columns([1.3, 2])
-
     with left_col:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("### Calendar")
-        
         cal_controls = st.columns([1, 1, 2])
-        if cal_controls[0].button("Previous", use_container_width=True):
+        if cal_controls[0].button("Previous"):
             y, m = st.session_state.view_year, st.session_state.view_month
             if m == 1:
                 st.session_state.view_year = y - 1
                 st.session_state.view_month = 12
             else:
                 st.session_state.view_month = m - 1
-        if cal_controls[1].button("Next", use_container_width=True):
+        if cal_controls[1].button("Next"):
             y, m = st.session_state.view_year, st.session_state.view_month
             if m == 12:
                 st.session_state.view_year = y + 1
                 st.session_state.view_month = 1
             else:
                 st.session_state.view_month = m + 1
-        cal_controls[2].button("Today", key="cal_today_button", on_click=lambda: _set_to_today(), use_container_width=True)
+        cal_controls[2].button("Today", key="cal_today_button", on_click=lambda: _set_to_today())
 
         st.markdown(f"#### {calendar.month_name[st.session_state.view_month]} {st.session_state.view_year}")
-        st.markdown("""
-            <div style="display: flex; justify-content: space-around; font-weight: bold; color: #495057;">
-                <div>Mon</div>
-                <div>Tue</div>
-                <div>Wed</div>
-                <div>Thu</div>
-                <div>Fri</div>
-                <div>Sat</div>
-                <div>Sun</div>
-            </div>
-        """, unsafe_allow_html=True)
-
 
         counts_by_date: Dict[str, int] = {}
         try:
@@ -252,7 +193,6 @@ def main() -> None:
                 if daynum == 0:
                     cols[i].markdown("&nbsp;")
                     continue
-                
                 cell_date = date(st.session_state.view_year, st.session_state.view_month, daynum)
                 badge = ""
                 if fmt_date(cell_date) in counts_by_date:
@@ -260,13 +200,11 @@ def main() -> None:
                 
                 button_type = "primary" if cell_date == st.session_state.selected_date else "secondary"
                 
-                if cols[i].button(f"{daynum}{badge}", key=f"cal_day_{daynum}", type=button_type, use_container_width=True):
+                if cols[i].button(f"{daynum}{badge}", key=f"cal_day_{daynum}", type=button_type):
                     st.session_state.selected_date = cell_date
                     st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True) # End of Calendar card
 
     with right_col:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown("### Controls")
 
         search_col1, search_col2, search_col3 = st.columns([2, 1, 1])
@@ -283,55 +221,48 @@ def main() -> None:
             start, end = month_range_for(scope_date.year, scope_date.month)
             scope = FilterScope("month", start, end)
 
-        if st.button("Refresh data", use_container_width=True):
+        if st.button("Refresh data"):
             st.cache_data.clear()
             df = load_sheet_dataframe(sheet_id=sheet_id, creds=creds) if sheet_id and creds else pd.DataFrame()
             st.success("Data refreshed")
-        
-        st.markdown('</div>', unsafe_allow_html=True) # End of Controls card
 
-    def apply_filters(dataframe: pd.DataFrame, query: str, scope_obj: FilterScope) -> pd.DataFrame:
-        if dataframe.empty:
-            return dataframe
-        df_filtered = dataframe.copy()
-        df_filtered = df_filtered[(df_filtered["date"] >= pd.to_datetime(scope_obj.start_date)) & (df_filtered["date"] <= pd.to_datetime(scope_obj.end_date))]
-        if query.strip():
-            q = query.strip().lower()
-            df_filtered = df_filtered[df_filtered["intern_name"].str.lower().str.contains(q, na=False)]
-        df_filtered = df_filtered.sort_values(by=["date", "created_at"], ascending=[False, False])
-        return df_filtered
+        def apply_filters(dataframe: pd.DataFrame, query: str, scope_obj: FilterScope) -> pd.DataFrame:
+            if dataframe.empty:
+                return dataframe
+            df_filtered = dataframe.copy()
+            df_filtered = df_filtered[(df_filtered["date"] >= pd.to_datetime(scope_obj.start_date)) & (df_filtered["date"] <= pd.to_datetime(scope_obj.end_date))]
+            if query.strip():
+                q = query.strip().lower()
+                df_filtered = df_filtered[df_filtered["intern_name"].str.lower().str.contains(q, na=False)]
+            df_filtered = df_filtered.sort_values(by=["date", "created_at"], ascending=[False, False])
+            return df_filtered
 
-    filtered = apply_filters(df, search_query, scope)
+        filtered = apply_filters(df, search_query, scope)
 
-    # Results section as a new card
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown("### Results")
-    stat_col1, stat_col2, stat_col3 = st.columns([1, 1, 2])
-    stat_col1.metric("Updates in view", len(filtered))
-    stat_col2.metric("Unique interns", filtered["intern_name"].nunique() if not filtered.empty else 0)
+        st.markdown("### Results")
+        stat_col1, stat_col2, stat_col3 = st.columns([1, 1, 2])
+        stat_col1.metric("Updates in view", len(filtered))
+        stat_col2.metric("Unique interns", filtered["intern_name"].nunique() if not filtered.empty else 0)
 
-    if not filtered.empty:
-        csv_bytes = filtered.to_csv(index=False).encode("utf-8")
-        stat_col3.download_button("Download CSV", data=csv_bytes, file_name="filtered_updates.csv", mime="text/csv", use_container_width=True)
+        if not filtered.empty:
+            csv_bytes = filtered.to_csv(index=False).encode("utf-8")
+            stat_col3.download_button("Download CSV", data=csv_bytes, file_name="filtered_updates.csv", mime="text/csv")
 
-    if filtered.empty:
-        st.info("No updates for the selected filters. Add the first update below.")
-    else:
-        for d, group in filtered.groupby(filtered["date"].dt.date):
-            with st.expander(f"{d} — {len(group)} update(s)"):
-                for _, row in group.iterrows():
-                    st.markdown(f"**{row['intern_name']}** — _{row.get('role', '')}_")
-                    st.write(row["update_text"])
-                    if row.get("tags") and pd.notna(row.get("tags")):
-                        st.caption(f"Tags: {row['tags']}")
-                    if row.get("created_by") and pd.notna(row.get("created_by")):
-                        st.caption(f"Updated by: {row['created_by']}")
-                    st.markdown("---")
-    st.markdown('</div>', unsafe_allow_html=True) # End of Results card
+        if filtered.empty:
+            st.info("No updates for the selected filters. Add the first update below.")
+        else:
+            for d, group in filtered.groupby(filtered["date"].dt.date):
+                with st.expander(f"{d} — {len(group)} update(s)"):
+                    for _, row in group.iterrows():
+                        st.markdown(f"**{row['intern_name']}** — _{row.get('role', '')}_")
+                        st.write(row["update_text"])
+                        if row.get("tags") and pd.notna(row.get("tags")):
+                            st.caption(f"Tags: {row['tags']}")
+                        if row.get("created_by") and pd.notna(row.get("created_by")):
+                            st.caption(f"Updated by: {row['created_by']}")
+                        st.markdown("---")
 
-
-    # This section is now moved to be full-width and centered in its own card
-    st.markdown('<div class="card">', unsafe_allow_html=True)
+    # This section is now moved to be full-width and centered
     st.markdown("### Add / Edit update")
 
     # Initialize session state for form fields
@@ -351,7 +282,7 @@ def main() -> None:
         tags = st.text_input("Tags (comma-separated, optional)", value=st.session_state["tags"])
         updated_by = st.text_input("Updated by (your name)", value=st.session_state["updated_by"])
 
-        submitted = st.form_submit_button("Submit update", use_container_width=True)
+        submitted = st.form_submit_button("Submit update")
 
         if submitted:
             if not intern_name.strip():
@@ -384,8 +315,6 @@ def main() -> None:
         st.session_state["tags"] = ""
         st.session_state["updated_by"] = ""
         st.session_state["form_submitted"] = False
-    
-    st.markdown('</div>', unsafe_allow_html=True) # End of Add/Edit card
 
 
 def _set_to_today() -> None:
