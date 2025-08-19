@@ -27,6 +27,14 @@ APP_TITLE = "Intern Work Tracker"
 st.markdown(
     """
 <style>
+/* Main app and sidebar background colors */
+[data-testid="stAppViewContainer"] > .main {
+    background-color: #F5F5F5;
+}
+[data-testid="stSidebar"] {
+    background-color: #ECECEC;
+}
+
 /* Reduce sidebar width */
 [data-testid="stSidebar"] > div:first-child {
     max-width: 220px;
