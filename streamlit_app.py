@@ -23,14 +23,48 @@ st.set_page_config(
 
 APP_TITLE = "Intern Work Tracker"
 
-# Reduce sidebar width
+# Custom vibrant CSS
 st.markdown(
     """
 <style>
+/* Sidebar width */
 [data-testid="stSidebar"] > div:first-child {
     max-width: 220px;
     min-width: 160px;
     width: 180px;
+}
+
+/* Calendar buttons */
+div.stButton > button {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: 0.2s;
+}
+div.stButton > button:hover {
+    background-color: #ff9800 !important;
+    color: white !important;
+}
+
+/* Highlight selected calendar date */
+.selected-date {
+    background-color: #4caf50 !important;
+    color: white !important;
+    border-radius: 50%;
+    font-weight: bold;
+    padding: 6px 10px;
+}
+
+/* Center the Add/Edit update form */
+.add-edit-container {
+    display: flex;
+    justify-content: center;
+}
+.add-edit-form {
+    width: 80%;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 </style>
 """,
@@ -153,8 +187,13 @@ def main() -> None:
                 badge = ""
                 if fmt_date(cell_date) in counts_by_date:
                     badge = f" ({counts_by_date[fmt_date(cell_date)]})"
-                if cols[i].button(f"{daynum}{badge}"):
-                    st.session_state.selected_date = cell_date
+
+                # Highlight selected date
+                if cell_date == st.session_state.selected_date:
+                    cols[i].markdown(f"<div class='selected-date'>{daynum}{badge}</div>", unsafe_allow_html=True)
+                else:
+                    if cols[i].button(f"{daynum}{badge}"):
+                        st.session_state.selected_date = cell_date
 
     with right_col:
         st.markdown("### Controls")
@@ -214,7 +253,9 @@ def main() -> None:
                             st.caption(f"Updated by: {row['created_by']}")
                         st.markdown("---")
 
+        # Centered Add/Edit update form
         st.markdown("### Add / Edit update")
+        st.markdown('<div class="add-edit-container"><div class="add-edit-form">', unsafe_allow_html=True)
 
         # Initialize session state for form fields
         for key in ["intern_name", "role_input", "update_text", "tags", "updated_by", "form_submitted"]:
@@ -267,8 +308,11 @@ def main() -> None:
             st.session_state["updated_by"] = ""
             st.session_state["form_submitted"] = False
 
-    st.sidebar.markdown("---")
-    st.sidebar.markdown(f"**Selected date:** {st.session_state.selected_date}")
+        st.markdown("</div></div>", unsafe_allow_html=True)
+
+    # Removed Selected Date bar in sidebar
+    # st.sidebar.markdown("---")
+    # st.sidebar.markdown(f"**Selected date:** {st.session_state.selected_date}")
 
 
 def _set_to_today() -> None:
